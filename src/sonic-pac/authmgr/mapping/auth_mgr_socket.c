@@ -186,6 +186,8 @@ AUTH_MGR_COPY(ATTR_INFO)
     osapiStrncpySafe(cInfo->info.authInfo.attrInfo.vlanString, cReply->info.authInfo.attrInfo.vlanString, strlen(Reply->info.authInfo.attrInfo.vlanString)+1);
     cInfo->info.authInfo.attrInfo.attrFlags = cReply->info.authInfo.attrInfo.attrFlags;
     cInfo->info.authInfo.attrInfo.vlanAttrFlags = cReply->info.authInfo.attrInfo.vlanAttrFlags;
+    cInfo->info.authInfo.attrInfo.tenantId = cReply->info.authInfo.attrInfo.tenantId;
+    cInfo->info.authInfo.attrInfo.tenantIdPresent = cReply->info.authInfo.attrInfo.tenantIdPresent;
  
 #if 0
   memcpy(&cInfo->info.authInfo.attrInfo, &cReply->info.authInfo.attrInfo,

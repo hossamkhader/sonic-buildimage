@@ -306,6 +306,8 @@ typedef struct authmgrAuthAttributeInfo_s
   uint32   vlanId; /* parsed VLAN id from vlan string */ 
   uint32   attrFlags;
   uint32   vlanAttrFlags;
+  uint32   tenantId;
+  BOOL     tenantIdPresent;
    BOOL     rcvdEapAttr;
 }authmgrAuthAttributeInfo_t;
 

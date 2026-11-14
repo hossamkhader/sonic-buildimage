@@ -548,6 +548,8 @@ void authmgrClientInfoPopulate(authmgrLogicalPortInfo_t *logicalPortInfo,
   client_info->vlanType = logicalPortInfo->client.vlanType;
 
   client_info->vlanId = logicalPortInfo->client.vlanId;
+  client_info->tenantId = logicalPortInfo->client.tenantId;
+  client_info->tenantIdPresent = logicalPortInfo->client.tenantIdPresent;
 
   client_info->sessionTime = logicalPortInfo->client.sessionTime;
 
@@ -628,7 +630,8 @@ RC_t authmgrClientStatusSet (authmgrLogicalPortInfo_t * logicalPortInfo,
 
     authmgrClientInfoPopulate(logicalPortInfo, &client_info);
 
-    PacAuthClientOperTblSet(physPort, logicalPortInfo->client.suppMacAddr, &client_info); 
+    if (SUCCESS != PacAuthClientOperTblSet(physPort, logicalPortInfo->client.suppMacAddr, &client_info))
+      return FAILURE;
 
     authmgrGlobalAuthInfoPopulate(&global_info);
 
@@ -667,7 +670,12 @@ RC_t authmgrClientStatusSet (authmgrLogicalPortInfo_t * logicalPortInfo,
 
       authmgrClientInfoPopulate(logicalPortInfo, &client_info);
 
-      PacAuthClientOperTblSet(physPort, logicalPortInfo->client.suppMacAddr, &client_info); 
+      if (SUCCESS != PacAuthClientOperTblSet(physPort, logicalPortInfo->client.suppMacAddr, &client_info))
+      {
+        authmgrCB->globalInfo->authmgrPortInfo[physPort].authCount--;
+        logicalPortInfo->client.logicalPortStatus = currentStatus;
+        return FAILURE;
+      }
 
       authmgrGlobalAuthInfoPopulate(&global_info);
 

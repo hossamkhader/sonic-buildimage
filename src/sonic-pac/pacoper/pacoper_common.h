@@ -41,6 +41,8 @@ typedef struct pac_authenticated_clients_oper_table_s
   uint32                 terminationAction;
   authmgrVlanType_t         vlanType;     /* assigned vlan category */
   uint32                 vlanId;
+  uint32                 tenantId;
+  BOOL                   tenantIdPresent;
   uint32                 sessionTime;
   uint32                 lastAuthTime;
    USER_MGR_AUTH_METHOD_t backend_auth_method;
@@ -48,7 +50,7 @@ typedef struct pac_authenticated_clients_oper_table_s
 }pac_authenticated_clients_oper_table_t;
 
 
-void PacAuthClientOperTblSet(uint32 intIfNum,  enetMacAddr_t macAddr, 
+int PacAuthClientOperTblSet(uint32 intIfNum,  enetMacAddr_t macAddr,
                             pac_authenticated_clients_oper_table_t *client_info);
 void PacAuthClientOperTblDel(uint32 intIfNum,  enetMacAddr_t macAddr);
 

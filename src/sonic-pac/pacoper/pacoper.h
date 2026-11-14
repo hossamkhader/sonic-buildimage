@@ -39,6 +39,17 @@ public:
     Table m_PacGlobalOperTbl;
     Table m_PacPortOperTbl;
     Table m_PacAuthClientOperTbl;
+    Table m_PacIpv6ProfileTbl;
+    Table m_PacIpv6ProfilePropertyTbl;
+    Table m_PacPortIpv6ProfileTbl;
+    Table m_ConfigStaticRouteTbl;
+    ProducerStateTable m_PacRuntimeAclTableType;
+    ProducerStateTable m_PacRuntimeAclTable;
+    ProducerStateTable m_PacRuntimeAclRuleTable;
+    ProducerStateTable m_PacRuntimeStaticRouteTable;
+    Table m_PacIpv6RouteSummaryOperTbl;
+    Table m_AclTableState;
+    Table m_AclRuleState;
 
 private:
 };

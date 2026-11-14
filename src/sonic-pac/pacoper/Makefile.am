@@ -1,4 +1,4 @@
-INCLUDES =  -I $(top_srcdir)/pacoper -I $(top_srcdir)/authmgr/common -I $(top_srcdir)/authmgr/mapping/include -I $(top_srcdir)/fpinfra/inc -I $(top_srcdir)/authmgr/protocol/include 
+INCLUDES =  -I $(top_srcdir)/pacoper -I $(top_srcdir)/authmgr/common -I $(top_srcdir)/authmgr/mapping/include -I $(top_srcdir)/authmgr/protocol/include -I $(top_srcdir)/fpinfra/inc
 
 lib_LTLIBRARIES = libpacoper.la 
 
@@ -9,7 +9,7 @@ DBGFLAGS = -g -DNDEBUG
 endif
 
 
-libpacoper_la_SOURCES = $(top_srcdir)/pacoper/pacoper.cpp
+libpacoper_la_SOURCES = $(top_srcdir)/pacoper/pacoper.cpp $(top_srcdir)/authmgr/protocol/ipv6_profile.c
 
 AM_CPPFLAGS = $(DBGFLAGS) $(AM_CFLAGS) $(SONIC_COMMON_CFLAGS) $(CFLAGS_COMMON)
 #libipacoper_la_CPPFLAGS = $(DBGFLAGS) $(CFLAGS_COMMON)

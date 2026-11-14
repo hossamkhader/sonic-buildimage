@@ -1,0 +1,34 @@
+#!/usr/bin/make -f
+# output every command that modifies files on the build system.
+#export DH_VERBOSE = 1
+
+DPKG_EXPORT_BUILDFLAGS = 1
+include /usr/share/dpkg/default.mk
+
+export DEB_BUILD_MAINT_OPTIONS = hardening=+all
+
+%:
+	dh $@ --with autoreconf
+
+override_dh_autoreconf:
+	mkdir -p m4 config
+	dh_autoreconf ./autogen.sh
+
+override_dh_auto_configure:
+	dh_auto_configure -- --libdir=/usr/lib
+
+# The sources build intermediate libraries that link against each other
+# by path, so build serially.
+override_dh_auto_build:
+	dh_auto_build --no-parallel
+
+override_dh_auto_install:
+	dh_auto_install --destdir=debian/sonic-pac
+	# Only the shared objects are needed at runtime.
+	find debian/sonic-pac -name '*.la' -delete
+	find debian/sonic-pac -name '*.a' -delete
+
+override_dh_auto_test:
+
+override_dh_strip:
+	dh_strip --dbg-package=sonic-pac-dbg

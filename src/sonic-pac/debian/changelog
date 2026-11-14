@@ -1,0 +1,5 @@
+sonic-pac (1.0.0) stable; urgency=medium
+
+  * Initial packaging of Port Access Control (802.1X / MAB) for SONiC.
+
+ -- SONiC <sonic@localhost>  Sat, 14 Nov 2026 12:00:00 +0000

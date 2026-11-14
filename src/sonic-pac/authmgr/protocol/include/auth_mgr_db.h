@@ -142,6 +142,9 @@ typedef struct authmgrClientInfo_s
 
    AUTHMGR_PORT_MAB_AUTH_TYPE_t mabAuthType; /* Authentication type used by MAB. To be filled in only if isMABClient is  TRUE */
 
+  uint32 tenantId;
+  BOOL tenantIdPresent;
+
   uint32 attrCreateMask;
 }authmgrClientInfo_t;
 

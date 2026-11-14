@@ -5,6 +5,42 @@
                 "mac_sync_mode": "fpm"
             }
         },
+        "PAC_IPV6_PROFILE": {
+            "TENANT-A": {
+                "route_tag": "1001",
+                "route_summary_prefix_length": "56"
+            }
+        },
+        "PAC_IPV6_PROFILE_PROPERTY": {
+            "TENANT-A|PREFIX": {
+                "type": "literal",
+                "offset": "0",
+                "length": "32",
+                "value": "352",
+                "isolation": "false",
+                "summarize": "false"
+            },
+            "TENANT-A|TENANT-ID": {
+                "type": "tenant-id",
+                "offset": "32",
+                "length": "16",
+                "isolation": "true",
+                "summarize": "false"
+            },
+            "TENANT-A|PORT-ID": {
+                "type": "port-id",
+                "offset": "48",
+                "length": "8",
+                "isolation": "false",
+                "summarize": "true"
+            }
+        },
+        "PAC_PORT_IPV6_PROFILE": {
+            "Ethernet0": {
+                "profile": "TENANT-A",
+                "port_id": "auto"
+            }
+        },
         "VRF": {
                 "Vrf_blue": {
                     "vni" : "100"
