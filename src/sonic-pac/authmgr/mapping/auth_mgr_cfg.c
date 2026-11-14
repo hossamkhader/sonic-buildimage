@@ -230,7 +230,7 @@ void authmgrBuildDefaultIntfConfigData(nimConfigID_t *configId, authmgrPortCfg_t
 *********************************************************************/
 RC_t authmgrApplyConfigData(void)
 {
-  return (authmgrIssueCmd(authmgrMgmtApplyConfigData,  NULL,  NULLPTR));
+  return (authmgrIssueCmd(authmgrMgmtApplyConfigData,  0,  NULLPTR));
 }
 
 /*********************************************************************
@@ -247,7 +247,7 @@ RC_t authmgrApplyConfigData(void)
 *********************************************************************/
 RC_t authmgrApplyPortConfigData(uint32 intIfNum)
 {
-  return (authmgrIssueCmd(authmgrMgmtApplyPortConfigData,  NULL,  NULLPTR));
+  return (authmgrIssueCmd(authmgrMgmtApplyPortConfigData,  0,  NULLPTR));
 }
 
 /*********************************************************************

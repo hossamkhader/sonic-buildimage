@@ -303,7 +303,7 @@ RC_t mabRadiusChallengeProcess(uint32 lIntIfNum, void *resp)
       ( uchar8)logicalPortInfo->client.suppMacAddr.addr[4],
       ( uchar8)logicalPortInfo->client.suppMacAddr.addr[5], ifName, lIntIfNum);
 
-   nimGetIntfAddress(physPort,  NULL, srcMac);
+   nimGetIntfAddress(physPort,  0, srcMac);
   
   SYSAPI_NET_MBUF_GET(bufHandle);
   if (bufHandle ==  NULL)
@@ -486,7 +486,7 @@ RC_t mabRadiusAccessRequestSend(uint32 lIntIfNum,  uchar8 *suppEapData)
   /* Called-Station-Id */
   bzero(localMac,  MAC_ADDR_LEN);
 
-  if (nimGetIntfAddress(physPort,  NULL, localMac) ==  SUCCESS)
+  if (nimGetIntfAddress(physPort,  0, localMac) ==  SUCCESS)
   {
     bzero(calledId, AUTHMGR_MAC_ADDR_STR_LEN+1);
     osapiSnprintf(( char8 *)calledId, sizeof(calledId), "%02X-%02X-%02X-%02X-%02X-%02X",

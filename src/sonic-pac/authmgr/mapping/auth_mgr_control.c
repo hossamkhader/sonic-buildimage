@@ -3063,6 +3063,8 @@ RC_t authmgrStatusSuccessAction (uint32 lIntIfNum,
     return authmgrGenerateEvents (logicalPortInfo->key.keyNum);
   }
   /* Update Session timeout and terminate action */ 
+  authmgrCB->processInfo.tenantId = callbackParams->clientParams.info.authInfo.attrInfo.tenantId;
+  authmgrCB->processInfo.tenantIdPresent = callbackParams->clientParams.info.authInfo.attrInfo.tenantIdPresent;
   authmgrCB->processInfo.sessionTimeout    =  authmgrCB->attrInfo.sessionTimeout; 
   authmgrCB->processInfo.terminationAction =  RADIUS_TERMINATION_ACTION_DEFAULT; 
   if ((RADIUS_TERMINATION_ACTION_DEFAULT == authmgrCB->attrInfo.terminationAction) ||
@@ -3116,6 +3118,8 @@ RC_t authmgrStatusSuccessAction (uint32 lIntIfNum,
     callbackParams->clientParams.info.authInfo.authMethod;
 
   logicalPortInfo->client.vlanId = authmgrCB->processInfo.vlanId;
+  logicalPortInfo->client.tenantId = authmgrCB->processInfo.tenantId;
+  logicalPortInfo->client.tenantIdPresent = authmgrCB->processInfo.tenantIdPresent;
 
   logicalPortInfo->client.sessionTimeout =
     authmgrCB->processInfo.sessionTimeout;

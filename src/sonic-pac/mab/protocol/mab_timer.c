@@ -93,7 +93,7 @@ RC_t mabTimerHandlerInfoGet(mabTimerType_t type, mabTimerMap_t *elem)
  *********************************************************************/
 void mabTimerExpiryHdlr( APP_TMR_CTRL_BLK_t timerCtrlBlk, void* ptrData)
 {
-  mabIssueCmd(mabTimeTick,  NULL,  NULLPTR);
+  mabIssueCmd(mabTimeTick,  0,  NULLPTR);
 }
 
 /*************************************************************************

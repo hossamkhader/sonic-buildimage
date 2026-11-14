@@ -1,0 +1,88 @@
+module sonic-pac-ipv6 {
+    yang-version 1.1;
+    namespace "http://github.com/sonic-net/sonic-pac-ipv6";
+    prefix pac-ipv6;
+
+    description "Dynamic IPv6 address profiles for PAC authenticated clients.";
+
+    revision 2026-11-10 {
+        description "Initial PAC IPv6 profile schema.";
+    }
+
+    container sonic-pac-ipv6 {
+        container PAC_IPV6_PROFILE {
+            description "Named address profiles used for PAC sessions.";
+            list PAC_IPV6_PROFILE_LIST {
+                key "name";
+                leaf name {
+                    type string { length "1..64"; }
+                }
+                leaf route_tag {
+                    type uint32;
+                }
+                leaf route_summary_prefix_length {
+                    type uint8 { range "1..128"; }
+                    description "Advertise this IPv6 aggregate while at least one matching PAC session is active.";
+                }
+            }
+        }
+
+        container PAC_IPV6_PROFILE_PROPERTY {
+            description "Bit fields that form an IPv6 address in a profile.";
+            list PAC_IPV6_PROFILE_PROPERTY_LIST {
+                key "profile property";
+                leaf profile {
+                    type string { length "1..64"; }
+                }
+                leaf property {
+                    type string { length "1..64"; }
+                }
+                leaf type {
+                    mandatory true;
+                    type enumeration {
+                        enum literal;
+                        enum tenant-id;
+                        enum port-id;
+                    }
+                }
+                leaf offset {
+                    mandatory true;
+                    type uint8 { range "0..127"; }
+                }
+                leaf length {
+                    mandatory true;
+                    type uint8 { range "1..64"; }
+                }
+                leaf value {
+                    type string { length "1..20"; }
+                }
+                leaf isolation {
+                    type boolean;
+                    default false;
+                }
+                leaf summarize {
+                    type boolean;
+                    default false;
+                }
+            }
+        }
+
+        container PAC_PORT_IPV6_PROFILE {
+            description "IPv6 profile and port ID selection for an access interface.";
+            list PAC_PORT_IPV6_PROFILE_LIST {
+                key "interface";
+                leaf interface {
+                    type string { length "1..128"; }
+                }
+                leaf profile {
+                    mandatory true;
+                    type string { length "1..64"; }
+                }
+                leaf port_id {
+                    type string { length "1..20"; }
+                    default "auto";
+                }
+            }
+        }
+    }
+}

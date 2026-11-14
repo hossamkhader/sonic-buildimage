@@ -78,7 +78,7 @@ bool PacCfgVlan::vlanMemberClean(int vlan)
    vector<FieldValueTuple> fvVector;
    fvVector.emplace_back("learn_mode", "drop");
    m_stateOperVlanMemberTable.getKeys(keys);
-   for (const auto key : keys)
+   for (const auto &key : keys)
    {
       unsigned pos = key.find(STATE_DB_SEPARATOR);
       string  vlanStr = key.substr (0, pos);

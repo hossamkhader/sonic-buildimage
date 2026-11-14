@@ -254,7 +254,7 @@ RC_t mabFirstValidIntfNumber(uint32 *pFirstIntIfNum)
 {
   RC_t rc =  FAILURE;
   nimUSP_t usp;
-  uint32 intIfNum =  NULL;
+  uint32 intIfNum =  0;
   
   if ( SUCCESS == nimFirstValidIntfNumberByType( PHYSICAL_INTF, &intIfNum))
   {

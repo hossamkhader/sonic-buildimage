@@ -41,8 +41,8 @@
         "tmpfs": {{ tmpfs.split()|json if tmpfs is defined else [] }}
     },
     "cli": {
-        "config": "{{ config_cli_plugin|default('') }}",
-        "show": "{{ show_cli_plugin|default('') }}",
-        "clear": "{{ clear_cli_plugin|default('') }}"
+        "config": {{ config_cli_plugin.split()|json if config_cli_plugin is defined else [] }},
+        "show": {{ show_cli_plugin.split()|json if show_cli_plugin is defined else [] }},
+        "clear": {{ clear_cli_plugin.split()|json if clear_cli_plugin is defined else [] }}
     }
 }

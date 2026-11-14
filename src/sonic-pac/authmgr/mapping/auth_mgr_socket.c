@@ -183,9 +183,11 @@ AUTH_MGR_COPY(ATTR_INFO)
     cInfo->info.authInfo.attrInfo.sessionTimeout = cReply->info.authInfo.attrInfo.sessionTimeout;
     cInfo->info.authInfo.attrInfo.terminationAction = cReply->info.authInfo.attrInfo.terminationAction;
     cInfo->info.authInfo.attrInfo.idFromServer = cReply->info.authInfo.attrInfo.idFromServer;
-    osapiStrncpySafe(cInfo->info.authInfo.attrInfo.vlanString, cReply->info.authInfo.attrInfo.vlanString, strlen(Reply->info.authInfo.attrInfo.vlanString)+1);
+    osapiStrncpySafe(cInfo->info.authInfo.attrInfo.vlanString, cReply->info.authInfo.attrInfo.vlanString, strlen(cReply->info.authInfo.attrInfo.vlanString)+1);
     cInfo->info.authInfo.attrInfo.attrFlags = cReply->info.authInfo.attrInfo.attrFlags;
     cInfo->info.authInfo.attrInfo.vlanAttrFlags = cReply->info.authInfo.attrInfo.vlanAttrFlags;
+    cInfo->info.authInfo.attrInfo.tenantId = cReply->info.authInfo.attrInfo.tenantId;
+    cInfo->info.authInfo.attrInfo.tenantIdPresent = cReply->info.authInfo.attrInfo.tenantIdPresent;
  
 #if 0
   memcpy(&cInfo->info.authInfo.attrInfo, &cReply->info.authInfo.attrInfo,
@@ -512,7 +514,7 @@ int read_from_connection(int socket, char *buf, unsigned int buf_len,
 		AUTHMGR_EVENT_TRACE (AUTHMGR_TRACE_CLIENT, 0, 
              "fd: %d Let's try to recv() %zd bytes... ", socket, len_to_receive);
 		
-        received_count = recv(socket, buf_ptr, len_to_receive, NULL);
+        received_count = recv(socket, buf_ptr, len_to_receive, 0);
 		
         if (received_count < 0) {
 			if (errno == EAGAIN || errno == EWOULDBLOCK) {
@@ -815,7 +817,7 @@ int authmgrMabDataSend(mab_pac_cmd_t *req, char *resp, unsigned int *len)
 	fd,  sizeof(mab_pac_cmd_t), req->cmd);
 
   /* read the resp */
-    rc = recv(fd, resp, *len, NULL);
+    rc = recv(fd, resp, *len, 0);
 
     *len = 0;
     if (rc)

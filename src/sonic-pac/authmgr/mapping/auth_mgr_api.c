@@ -675,7 +675,7 @@ RC_t authmgrNextValidIntf(uint32 intIfNum, uint32 *pNextIntIfNum)
 RC_t authmgrFirstValidIntfNumber(uint32 *pFirstIntIfNum)
 {
   RC_t rc =  FAILURE;
-  uint32 intIfNum =  NULL;
+  uint32 intIfNum =  0;
   
   if ( SUCCESS == nimFirstValidIntfNumberByType( PHYSICAL_INTF, &intIfNum))
   {
@@ -2980,7 +2980,7 @@ RC_t authmgrPortInfoReset(uint32 intIfNum,  BOOL initialize)
  *********************************************************************/
 RC_t authmgrClientDelete( enetMacAddr_t macAddr)
 {
-  uint32 lIntIfNum =  NULL;
+  uint32 lIntIfNum =  0;
 
   if ( SUCCESS == authmgrClientMacAddressGet(( enetMacAddr_t *)&macAddr, &lIntIfNum))
   {

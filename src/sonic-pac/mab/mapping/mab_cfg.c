@@ -103,7 +103,7 @@ void mabBuildDefaultIntfConfigData(nimConfigID_t *configId, mabPortCfg_t *pCfg)
 *********************************************************************/
 RC_t mabApplyConfigData(void)
 {
-  return (mabIssueCmd(mabMgmtApplyConfigData,  NULL,  NULLPTR));
+  return (mabIssueCmd(mabMgmtApplyConfigData,  0,  NULLPTR));
 }
 
 /*********************************************************************
