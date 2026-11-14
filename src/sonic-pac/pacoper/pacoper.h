@@ -39,6 +39,32 @@ public:
     Table m_PacGlobalOperTbl;
     Table m_PacPortOperTbl;
     Table m_PacAuthClientOperTbl;
+    Table m_PacIpv6ProfileTbl;
+    Table m_PacIpv6ProfilePropertyTbl;
+    Table m_PacPortIpv6ProfileTbl;
+    Table m_ConfigStaticRouteTbl;
+    ProducerStateTable m_PacRuntimeAclTableType;
+    ProducerStateTable m_PacRuntimeAclTable;
+    ProducerStateTable m_PacRuntimeAclRuleTable;
+    // bgpcfgd reads APPL_DB STATIC_ROUTE with a SubscriberStateTable (keyspace
+    // events on STATIC_ROUTE:<prefix>), like the entries staticroutebfd
+    // writes, so this must be a plain Table rather than a ProducerStateTable.
+    Table m_PacRuntimeStaticRouteTable;
+    Table m_PacIpv6RouteSummaryOperTbl;
+    Table m_AclTableState;
+    Table m_AclRuleState;
+    // Read-only views of the APPL_DB tables written above (ProducerStateTable
+    // cannot read).
+    Table m_PacRuntimeAclTableReader;
+    Table m_PacRuntimeAclRuleReader;
+    Table m_PacRuntimeStaticRouteReader;
+    // Routed-port switching: vlanmgrd takes a port out of its VLANs while
+    // OPER_PORT "pac_routed" is set; orchagent then accepts the router
+    // interface and the session addresses written to APPL_DB INTF_TABLE.
+    Table m_OperPortTbl;
+    Table m_VlanMemberState;
+    ProducerStateTable m_PacRuntimeIntfTable;
+    Table m_PacIpv6RoutedPortOperTbl;
 
 private:
 };

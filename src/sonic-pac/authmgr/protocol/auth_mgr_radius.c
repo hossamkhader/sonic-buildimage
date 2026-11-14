@@ -235,6 +235,28 @@ RC_t authmgrRadiusAcceptPostProcess (authmgrLogicalPortInfo_t *
 
   AUTHMGR_PORT_GET (physPort, logicalPortInfo->key.keyNum);
 
+  /* A port with a PAC IPv6 profile is a tenant port: it is an L2 access port
+     until a tenant is authorized, then PAC turns it into a routed port with
+     the tenant's IPv6 address. Tenant sessions take no VLAN, and a client
+     without a tenant ID cannot be authorized on such a port. */
+  if (PacIpv6ProfileBound(physPort))
+  {
+    if (!processInfo->tenantIdPresent)
+    {
+      logicalPortInfo->protocol.authSuccess =  FALSE;
+      logicalPortInfo->protocol.authFail =  TRUE;
+      AUTHMGR_EVENT_TRACE (AUTHMGR_TRACE_RADIUS, physPort,
+          "%s:%d:Port %s has an IPv6 profile and the client has no tenant ID",
+          __FUNCTION__, __LINE__, authmgrIntfIfNameGet(physPort));
+      return  FAILURE;
+    }
+    AUTHMGR_EVENT_TRACE (AUTHMGR_TRACE_RADIUS, physPort,
+        "%s:%d:Authorizing tenant %u on port %s without VLAN",
+        __FUNCTION__, __LINE__, processInfo->tenantId, authmgrIntfIfNameGet(physPort));
+    processInfo->vlanId = 0;
+    return  SUCCESS;
+  }
+
   /* check vlan attribute */
   if (0 ==  authmgrCB->attrInfo.vlanAttrFlags)
   {

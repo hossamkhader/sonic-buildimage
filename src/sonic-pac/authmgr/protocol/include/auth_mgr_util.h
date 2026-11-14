@@ -49,9 +49,13 @@ extern "C" {
     return  FAILURE; \
   }
 
+/* Uses a small thread-local ring buffer so the returned string outlives the
+ * statement expression and several MACs can be printed in one call. */
 #define AUTHMGR_PRINT_MAC_ADDR(mac_addr)({                                   \
-         uchar8 __maddr[32] = {'\0'};                                      \
-        snprintf(__maddr, sizeof(__maddr), " %02X:%02X:%02X:%02X:%02X:%02X", \
+        static __thread char __maddr_ring[4][32];                           \
+        static __thread unsigned int __maddr_idx;                           \
+        char *__maddr = __maddr_ring[__maddr_idx++ & 3];                    \
+        snprintf(__maddr, sizeof(__maddr_ring[0]), " %02X:%02X:%02X:%02X:%02X:%02X", \
                  (unsigned char)mac_addr[0], (unsigned char)mac_addr[1],     \
                  (unsigned char)mac_addr[2], (unsigned char)mac_addr[3],     \
                  (unsigned char)mac_addr[4], (unsigned char)mac_addr[5] );   \
@@ -236,6 +240,9 @@ extern  BOOL pacCfgIntfClientUnblock(char *interface,  uchar8 *mac_addr, int vla
 
 /* Set port PVID */
 extern RC_t pacCfgPortPVIDSet(char *interface, int pvid);
+
+/* Non-zero when a PAC IPv6 profile is bound to the interface (pacoper). */
+extern int PacIpv6ProfileBound(uint32 intIfNum);
 
 /* Get port PVID */
 extern RC_t pacCfgPortPVIDGet(char *interface, int *pvid);

@@ -1,0 +1,21 @@
+Source: sonic-pac
+Maintainer: SONiC
+Section: net
+Priority: optional
+Build-Depends: debhelper (>= 10), autotools-dev, dh-autoreconf, libtool,
+ libhiredis-dev, libnl-3-dev, libnl-route-3-dev, libnl-genl-3-dev,
+ libelf-dev, libswsscommon-dev
+Standards-Version: 4.5.0
+
+Package: sonic-pac
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Port Access Control (802.1X authenticator and MAB) for SONiC.
+ Provides pacd (authentication manager), hostapdmgrd and mabd.
+
+Package: sonic-pac-dbg
+Architecture: any
+Section: debug
+Priority: optional
+Depends: sonic-pac (= ${binary:Version})
+Description: debugging symbols for sonic-pac

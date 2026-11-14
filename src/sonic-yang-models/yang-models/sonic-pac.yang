@@ -1,0 +1,114 @@
+module sonic-pac {
+    yang-version 1.1;
+    namespace "http://github.com/sonic-net/sonic-pac";
+    prefix pac;
+
+    import sonic-port {
+        prefix port;
+    }
+
+    description "Port Access Control (802.1X authenticator and MAB) configuration.";
+
+    revision 2026-11-14 {
+        description "Initial PAC configuration schema.";
+    }
+
+    typedef auth-method-list {
+        type string {
+            pattern "(dot1x|mab)(,(dot1x|mab))?";
+        }
+        description "Comma separated list of authentication methods, in order.";
+    }
+
+    container sonic-pac {
+
+        container PAC_PORT_CONFIG_TABLE {
+            description "Per-port authentication manager configuration (read by pacd).";
+            list PAC_PORT_CONFIG_TABLE_LIST {
+                key "port";
+                leaf port {
+                    type leafref {
+                        path "/port:sonic-port/port:PORT/port:PORT_LIST/port:name";
+                    }
+                }
+                leaf port_control_mode {
+                    type enumeration {
+                        enum auto;
+                        enum force-authorized;
+                        enum force-unauthorized;
+                    }
+                }
+                leaf host_control_mode {
+                    type enumeration {
+                        enum single-host;
+                        enum multi-host;
+                        enum multi-auth;
+                    }
+                }
+                leaf reauth_enable {
+                    type boolean;
+                }
+                leaf reauth_period {
+                    type uint32 { range "1..65535"; }
+                    units seconds;
+                }
+                leaf reauth_period_from_server {
+                    type boolean;
+                }
+                leaf max_users_per_port {
+                    type uint32 { range "1..48"; }
+                }
+                leaf port_pae_role {
+                    type enumeration {
+                        enum authenticator;
+                        enum none;
+                    }
+                }
+                leaf method_list {
+                    type auth-method-list;
+                }
+                leaf priority_list {
+                    type auth-method-list;
+                }
+            }
+        }
+
+        container HOSTAPD_GLOBAL_CONFIG_TABLE {
+            description "Global 802.1X configuration (read by hostapdmgrd and pacd).";
+            list HOSTAPD_GLOBAL_CONFIG_TABLE_LIST {
+                key "global";
+                max-elements 1;
+                leaf global {
+                    type enumeration {
+                        enum GLOBAL;
+                    }
+                }
+                leaf dot1x_system_auth_control {
+                    type boolean;
+                }
+            }
+        }
+
+        container MAB_PORT_CONFIG_TABLE {
+            description "Per-port MAC Authentication Bypass configuration (read by mabd).";
+            list MAB_PORT_CONFIG_TABLE_LIST {
+                key "port";
+                leaf port {
+                    type leafref {
+                        path "/port:sonic-port/port:PORT/port:PORT_LIST/port:name";
+                    }
+                }
+                leaf mab_enable {
+                    type boolean;
+                }
+                leaf mab_auth_type {
+                    type enumeration {
+                        enum pap;
+                        enum chap;
+                        enum eap-md5;
+                    }
+                }
+            }
+        }
+    }
+}

@@ -342,6 +342,13 @@ RC_t authmgrClientHwInfoCleanup (authmgrLogicalPortInfo_t * logicalPortInfo)
   vlanType = logicalPortInfo->client.vlanType;
   vlanId = logicalPortInfo->client.vlanId;
 
+  /* VLAN-less (routed tenant) client: no VLAN participation to clear. */
+  if (0 == vlanId)
+  {
+    logicalPortInfo->client.vlanType = AUTHMGR_VLAN_UNASSIGNED;
+    return  SUCCESS;
+  }
+
   /* reset the data from the logical node temporarily */
   logicalPortInfo->client.vlanId = 0;
   logicalPortInfo->client.vlanType = AUTHMGR_VLAN_UNASSIGNED;
@@ -420,6 +427,27 @@ RC_t authmgrClientHwInfoAdd (authmgrLogicalPortInfo_t * logicalPortInfo,
   if ( AUTHMGR_PORT_AUTO !=
       authmgrCB->globalInfo->authmgrPortInfo[physPort].portControlMode)
   {
+    return  SUCCESS;
+  }
+
+  /* A tenant session is authorized without a VLAN: PAC turns the port into
+     a routed port, so there is no static FDB entry or VLAN membership to
+     program. Drop the discard entry that blocked the client while the port
+     was L2, so the port can leave its VLANs. */
+  if (0 == vlanId)
+  {
+    if (( TRUE == logicalPortInfo->client.dataBlocked) &&
+        (0 != logicalPortInfo->client.blockVlanId))
+    {
+      if (pacCfgIntfClientUnblock(ifName, logicalPortInfo->client.suppMacAddr.addr,
+                                  logicalPortInfo->client.blockVlanId) !=  TRUE)
+      {
+        LOGF ( LOG_SEVERITY_ERROR,
+               "Unable to unblock client on port %s", ifName);
+        return  FAILURE;
+      }
+      logicalPortInfo->client.dataBlocked =  FALSE;
+    }
     return  SUCCESS;
   }
 
@@ -548,6 +576,8 @@ void authmgrClientInfoPopulate(authmgrLogicalPortInfo_t *logicalPortInfo,
   client_info->vlanType = logicalPortInfo->client.vlanType;
 
   client_info->vlanId = logicalPortInfo->client.vlanId;
+  client_info->tenantId = logicalPortInfo->client.tenantId;
+  client_info->tenantIdPresent = logicalPortInfo->client.tenantIdPresent;
 
   client_info->sessionTime = logicalPortInfo->client.sessionTime;
 
@@ -628,7 +658,8 @@ RC_t authmgrClientStatusSet (authmgrLogicalPortInfo_t * logicalPortInfo,
 
     authmgrClientInfoPopulate(logicalPortInfo, &client_info);
 
-    PacAuthClientOperTblSet(physPort, logicalPortInfo->client.suppMacAddr, &client_info); 
+    if (SUCCESS != PacAuthClientOperTblSet(physPort, logicalPortInfo->client.suppMacAddr, &client_info))
+      return FAILURE;
 
     authmgrGlobalAuthInfoPopulate(&global_info);
 
@@ -667,7 +698,12 @@ RC_t authmgrClientStatusSet (authmgrLogicalPortInfo_t * logicalPortInfo,
 
       authmgrClientInfoPopulate(logicalPortInfo, &client_info);
 
-      PacAuthClientOperTblSet(physPort, logicalPortInfo->client.suppMacAddr, &client_info); 
+      if (SUCCESS != PacAuthClientOperTblSet(physPort, logicalPortInfo->client.suppMacAddr, &client_info))
+      {
+        authmgrCB->globalInfo->authmgrPortInfo[physPort].authCount--;
+        logicalPortInfo->client.logicalPortStatus = currentStatus;
+        return FAILURE;
+      }
 
       authmgrGlobalAuthInfoPopulate(&global_info);
 

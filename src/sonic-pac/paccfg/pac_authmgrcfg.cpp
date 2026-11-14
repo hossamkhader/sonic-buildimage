@@ -94,7 +94,7 @@ void PacCfg::intfStaticMacCleanup(void)
 {
    vector<string> keys;
    m_stateOperFdbTable.getKeys(keys);
-   for (const auto key : keys)
+   for (const auto &key : keys)
    {
       m_stateOperFdbTable.del(key);
    }

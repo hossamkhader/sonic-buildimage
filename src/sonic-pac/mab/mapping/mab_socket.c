@@ -218,7 +218,7 @@ int read_from_connection(int socket, char *buf, unsigned int buf_len,
     MAB_EVENT_TRACE(
              "fd: %d Let's try to recv() %zd bytes... ", socket, len_to_receive);
 
-    received_count = recv(socket, buf_ptr, len_to_receive, NULL);
+    received_count = recv(socket, buf_ptr, len_to_receive, 0);
 
     if (received_count < 0) {
       if (errno == EAGAIN || errno == EWOULDBLOCK) {

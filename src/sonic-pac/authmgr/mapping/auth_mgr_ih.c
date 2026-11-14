@@ -73,7 +73,7 @@ void authmgrIntfStartupCallback (NIM_STARTUP_PHASE_t startupPhase)
              startupPhase);
     osapiSleep(1);
   }
-  authmgrIssueCmd (authmgrIntfStartup,  NULL, &startupPhase);
+  authmgrIssueCmd (authmgrIntfStartup,  0, &startupPhase);
 }
 
 /*********************************************************************

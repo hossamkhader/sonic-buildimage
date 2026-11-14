@@ -826,7 +826,7 @@ RC_t mabCtlPortInitializeSet(uint32 intIfNum,  BOOL initialize)
  *********************************************************************/
 RC_t mabCtlPortStatsClear(uint32 intIfNum)
 {
-  memset(( char8 *)&mabBlock->mabPortStats[intIfNum],  NULL, sizeof(mabPortStats_t));
+  memset(( char8 *)&mabBlock->mabPortStats[intIfNum],  0, sizeof(mabPortStats_t));
   return  SUCCESS;
 }
 

@@ -1894,7 +1894,11 @@ RC_t authmgrCtlPortUnauthAddrCallbackProcess (uint32 intIfNum,
           "%s, %d, disabling the settings for logicalInterface %d to receive further packets to CPU\n",
           __func__, __LINE__, lIntIfNum);
 
-    if (pacCfgIntfClientBlock(ifName, macAddr.addr, vlanId) !=  TRUE)
+    /* A routed port (VLAN 0) has no VLAN-scoped FDB in which to install a
+       discard entry; vlanmgrd would retry an OPER_FDB|Vlan0 key forever and
+       the unblock paths skip blockVlanId 0. Only record the client as blocked. */
+    if ((0 != vlanId) &&
+        (pacCfgIntfClientBlock(ifName, macAddr.addr, vlanId) !=  TRUE))
     {
        LOGF ( LOG_SEVERITY_ERROR,
                "Unable to block port %s", ifName); 
@@ -3042,6 +3046,11 @@ RC_t authmgrStatusSuccessAction (uint32 lIntIfNum,
           callbackParams->clientParams.info.authInfo.authmgrUserNameLength;
   }
 
+  /* The tenant ID decides whether a routed (VLAN-less) port can be
+     authorized, so it has to be known before the post processing. */
+  authmgrCB->processInfo.tenantId = callbackParams->clientParams.info.authInfo.attrInfo.tenantId;
+  authmgrCB->processInfo.tenantIdPresent = callbackParams->clientParams.info.authInfo.attrInfo.tenantIdPresent;
+
   if ( SUCCESS != authmgrRadiusAcceptPostProcess (logicalPortInfo, &authmgrCB->processInfo,  AUTHMGR_ATTR_RADIUS))
   {
     /* update failure stats and move further */
@@ -3116,6 +3125,8 @@ RC_t authmgrStatusSuccessAction (uint32 lIntIfNum,
     callbackParams->clientParams.info.authInfo.authMethod;
 
   logicalPortInfo->client.vlanId = authmgrCB->processInfo.vlanId;
+  logicalPortInfo->client.tenantId = authmgrCB->processInfo.tenantId;
+  logicalPortInfo->client.tenantIdPresent = authmgrCB->processInfo.tenantIdPresent;
 
   logicalPortInfo->client.sessionTimeout =
     authmgrCB->processInfo.sessionTimeout;

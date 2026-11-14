@@ -793,7 +793,7 @@ RC_t nimSetIntfifAlias(uint32 intIfNum,  uchar8 *ifAlias)
         memset(( void * )nimCtlBlk_g->nimPorts[intIfNum].configPort.cfgInfo.ifAlias, 0,  NIM_IF_ALIAS_SIZE+1);
 
         if (strlen(( uchar8*)ifAlias) <=  NIM_IF_ALIAS_SIZE)
-          osapiStrncpySafe( nimCtlBlk_g->nimPorts[intIfNum].configPort.cfgInfo.ifAlias, ( uchar8*)ifAlias , strlen(( uchar8*)ifAlias));
+          osapiStrncpySafe( nimCtlBlk_g->nimPorts[intIfNum].configPort.cfgInfo.ifAlias, ( uchar8*)ifAlias , strlen(( uchar8*)ifAlias) + 1);
         else
           osapiStrncpySafe( nimCtlBlk_g->nimPorts[intIfNum].configPort.cfgInfo.ifAlias, ( uchar8*)ifAlias, ( NIM_IF_ALIAS_SIZE) );
 

@@ -82,7 +82,7 @@ void authmgrTxCannedSuccess (uint32 lIntIfNum, authmgrPortType_t portType)
   /* Set ethernet header */
   enetHdr = ( enetHeader_t *) (data);
 
-  if (nimGetIntfAddress(intIfNum,  NULL, baseMac) !=  SUCCESS)
+  if (nimGetIntfAddress(intIfNum,  0, baseMac) !=  SUCCESS)
   {
      LOGF ( LOG_SEVERITY_NOTICE,
              "802.1X could not send EAP_SUCCESS - Could not get MAC address for interface %d", intIfNum);
@@ -180,7 +180,7 @@ void authmgrTxCannedFail (uint32 lIntIfNum, authmgrPortType_t portType)
 
   /* Set ethernet header */
   enetHdr = ( enetHeader_t *) (data);
-  if (nimGetIntfAddress(intIfNum,  NULL, baseMac) !=  SUCCESS)
+  if (nimGetIntfAddress(intIfNum,  0, baseMac) !=  SUCCESS)
   {
      LOGF ( LOG_SEVERITY_NOTICE,
              "802.1X could send EAP_FAILURE - Could not get MAC address for interface %d", intIfNum);

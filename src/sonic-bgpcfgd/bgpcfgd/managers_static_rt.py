@@ -36,6 +36,65 @@ class StaticRouteMgr(Manager):
     OP_ADD = 'ADD'
     ROUTE_ADVERTISE_ENABLE_TAG = '1'
     ROUTE_ADVERTISE_DISABLE_TAG = '2'
+    CUSTOM_TAG_MIN = 3
+    CUSTOM_TAG_MAX = 4294967295
+    CUSTOM_TAG_SEQ_BASE = 100
+
+    # An advertised route can carry an application-chosen tag (the "tag"
+    # field). STATIC_ROUTE_FILTER is a single FRR route-map shared by the
+    # CONFIG_DB and APPL_DB managers, so the extra "match tag" entries that
+    # keep such routes advertised are tracked at class level:
+    #   tag -> sequence number, and tag -> {(db_name, vrf, prefix)}.
+    custom_tag_seq = {}
+    custom_tag_users = {}
+
+    @classmethod
+    def parse_custom_tag(cls, data):
+        """
+        Return the custom tag in data as a string, None when absent, or raise ValueError.
+        """
+        text = data.get('tag', '').strip()
+        if not text:
+            return None
+        if not text.isdigit():
+            raise ValueError("tag {!r} is not an unsigned integer".format(text))
+        tag = int(text)
+        if tag < cls.CUSTOM_TAG_MIN or tag > cls.CUSTOM_TAG_MAX:
+            raise ValueError("tag {} is outside {}..{}".format(tag, cls.CUSTOM_TAG_MIN, cls.CUSTOM_TAG_MAX))
+        return str(tag)
+
+    @staticmethod
+    def custom_tag_entry_command(seq, tag):
+        return ["route-map STATIC_ROUTE_FILTER permit %d" % seq, " match tag %s" % tag]
+
+    def custom_tag_acquire(self, tag, owner):
+        """ Register owner as a user of tag; return the commands needed to advertise it """
+        users = self.custom_tag_users.setdefault(tag, set())
+        users.add(owner)
+        if tag in self.custom_tag_seq:
+            return []
+        used = set(self.custom_tag_seq.values())
+        seq = self.CUSTOM_TAG_SEQ_BASE
+        while seq in used:
+            seq += 1
+        self.custom_tag_seq[tag] = seq
+        return self.custom_tag_entry_command(seq, tag)
+
+    def custom_tag_release(self, owner, keep_tag=None):
+        """ Drop owner from every custom tag except keep_tag; return cleanup commands """
+        cmd_list = []
+        for tag in list(self.custom_tag_users):
+            if tag == keep_tag:
+                continue
+            users = self.custom_tag_users[tag]
+            users.discard(owner)
+            if users:
+                continue
+            del self.custom_tag_users[tag]
+            seq = self.custom_tag_seq.pop(tag, None)
+            if seq is not None:
+                cmd_list.append("no route-map STATIC_ROUTE_FILTER permit %d" % seq)
+        return cmd_list
 
     def set_handler(self, key, data):
         key_parts = self.split_key(key)
@@ -51,7 +110,19 @@ class StaticRouteMgr(Manager):
         dist_list   = arg_list(data['distance']) if 'distance' in data else None
         nh_vrf_list = arg_list(data['nexthop-vrf']) if 'nexthop-vrf' in data else None
         bfd_enable  = arg_list(data['bfd']) if 'bfd' in data else None
-        route_tag   = self.ROUTE_ADVERTISE_DISABLE_TAG if 'advertise' in data and data['advertise'] == "false" else self.ROUTE_ADVERTISE_ENABLE_TAG
+        advertise   = not ('advertise' in data and data['advertise'] == "false")
+        route_tag   = self.ROUTE_ADVERTISE_ENABLE_TAG if advertise else self.ROUTE_ADVERTISE_DISABLE_TAG
+        try:
+            custom_tag = self.parse_custom_tag(data)
+        except ValueError as exc:
+            log_err("{} static route {}: {}".format(self.db_name, key, exc))
+            return True
+        if custom_tag is not None:
+            if advertise:
+                route_tag = custom_tag
+            else:
+                log_err("{} static route {}: tag {} ignored because advertise is false".format(self.db_name, key, custom_tag))
+        owner = (self.db_name, vrf, ip_prefix)
 
         # bfd enabled route would be handled in staticroutebfd, skip here
         if bfd_enable and bfd_enable[0].lower() == "true":
@@ -60,6 +131,9 @@ class StaticRouteMgr(Manager):
             if tmp_nh_set: #clear nexthop set if it is not empty
                 log_debug("{} static route {} bfd flag is true, cur_nh is not empty, clear it".format(self.db_name, key))
                 self.static_routes.setdefault(vrf, {}).pop(ip_prefix, None)
+                release_cmds = self.custom_tag_release(owner)
+                if release_cmds:
+                    self.cfg_mgr.push_list(release_cmds)
             return True
 
         try:
@@ -78,6 +152,13 @@ class StaticRouteMgr(Manager):
                 cmd_list.extend(self.enable_redistribution_command(vrf))
             else:
                 self.vrf_pending_redistribution.add(vrf)
+
+        # Permit the custom tag in STATIC_ROUTE_FILTER before the route
+        # appears with it, and retire the old tag's entry once it is gone.
+        keep_tag = route_tag if route_tag == custom_tag else None
+        if keep_tag is not None:
+            cmd_list = self.custom_tag_acquire(keep_tag, owner) + cmd_list
+        cmd_list.extend(self.custom_tag_release(owner, keep_tag))
 
         if cmd_list:
             self.cfg_mgr.push_list(cmd_list)
@@ -151,6 +232,7 @@ class StaticRouteMgr(Manager):
         ip_nh_set = IpNextHopSet(is_ipv6)
         cur_nh_set, route_tag = self.static_routes.get(vrf, {}).get(ip_prefix, (IpNextHopSet(is_ipv6), self.ROUTE_ADVERTISE_DISABLE_TAG))
         cmd_list = self.static_route_commands(ip_nh_set, cur_nh_set, ip_prefix, vrf, route_tag, route_tag)
+        cmd_list.extend(self.custom_tag_release((self.db_name, vrf, ip_prefix)))
 
         # Disable redistribution of static routes when it is the last one to delete
         if self.static_routes.get(vrf, {}).keys() == {ip_prefix}:
@@ -253,6 +335,10 @@ class StaticRouteMgr(Manager):
         cmd_list = []
         cmd_list.append("route-map STATIC_ROUTE_FILTER permit 10")
         cmd_list.append(" match tag %s" % self.ROUTE_ADVERTISE_ENABLE_TAG)
+        # Restore custom-tag entries in case the route-map was removed while
+        # those routes were still installed.
+        for tag, seq in sorted(self.custom_tag_seq.items(), key=lambda item: item[1]):
+            cmd_list.extend(self.custom_tag_entry_command(seq, tag))
         bgp_asn = self.directory.get_slot("CONFIG_DB", swsscommon.CFG_DEVICE_METADATA_TABLE_NAME)["localhost"]["bgp_asn"]
         if vrf == 'default':
             cmd_list.append("router bgp %s" % bgp_asn)

@@ -650,6 +650,15 @@ void HostapdMgr::onMsg(int nlmsg_type, struct nl_object *obj)
     return;
   }
 
+  /* An AF_BRIDGE RTM_DELLINK only means the port left the bridge (for
+     example when PAC turns it into a routed port); the link and its hostapd
+     instance must stay. */
+  if ((nlmsg_type == RTM_DELLINK) && (rtnl_link_get_family(link) == AF_BRIDGE))
+  {
+    SWSS_LOG_INFO("%s left the bridge", key.c_str());
+    return;
+  }
+
   unsigned int flags = rtnl_link_get_flags(link);
   bool admin = flags & IFF_UP;
   bool oper = flags & IFF_LOWER_UP;

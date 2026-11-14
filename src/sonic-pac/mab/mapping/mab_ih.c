@@ -74,7 +74,7 @@ void mabIntfStartupCallback(NIM_STARTUP_PHASE_t startupPhase)
         startupPhase);
     osapiSleep(1);
   }
-  mabIssueCmd(mabIntfStartup,  NULL, &startupPhase);
+  mabIssueCmd(mabIntfStartup,  0, &startupPhase);
   return;
 }
 

@@ -116,6 +116,15 @@ void NimSync::onMsg(int nlmsg_type, struct nl_object *obj)
     struct rtnl_link *link = (struct rtnl_link *)obj;
     string key = rtnl_link_get_name(link);
 
+    /* An AF_BRIDGE RTM_DELLINK only means the port left the bridge (for
+       example when PAC turns it into a routed port); the link itself is still
+       there and must not be deleted from NIM. */
+    if ((nlmsg_type == RTM_DELLINK) && (rtnl_link_get_family(link) == AF_BRIDGE))
+    {
+        SWSS_LOG_INFO("%s left the bridge", key.c_str());
+        return;
+    }
+
     if (key.compare(0, INTFS_PREFIX.length(), INTFS_PREFIX) &&
         key.compare(0, LAG_PREFIX.length(), LAG_PREFIX) &&
         key.compare(0, MGMT_PREFIX.length(), MGMT_PREFIX))

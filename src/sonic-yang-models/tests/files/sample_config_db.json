@@ -5,6 +5,65 @@
                 "mac_sync_mode": "fpm"
             }
         },
+        "PAC_IPV6_PROFILE": {
+            "TENANT-A": {
+                "route_tag": "1001"
+            }
+        },
+        "PAC_IPV6_PROFILE_PROPERTY": {
+            "TENANT-A|PREFIX": {
+                "type": "literal",
+                "offset": "0",
+                "length": "32",
+                "value": "352",
+                "isolation": "false",
+                "summarize": "false"
+            },
+            "TENANT-A|TENANT-ID": {
+                "type": "tenant-id",
+                "offset": "32",
+                "length": "16",
+                "isolation": "true",
+                "summarize": "false"
+            },
+            "TENANT-A|PORT-ID": {
+                "type": "port-id",
+                "offset": "48",
+                "length": "8",
+                "isolation": "false",
+                "summarize": "true"
+            }
+        },
+        "PAC_PORT_IPV6_PROFILE": {
+            "Ethernet0": {
+                "profile": "TENANT-A",
+                "port_id": "auto"
+            }
+        },
+        "PAC_PORT_CONFIG_TABLE": {
+            "Ethernet0": {
+                "port_control_mode": "auto",
+                "host_control_mode": "multi-auth",
+                "reauth_enable": "true",
+                "reauth_period": "3600",
+                "reauth_period_from_server": "false",
+                "max_users_per_port": "16",
+                "port_pae_role": "authenticator",
+                "method_list": "dot1x,mab",
+                "priority_list": "dot1x,mab"
+            }
+        },
+        "HOSTAPD_GLOBAL_CONFIG_TABLE": {
+            "GLOBAL": {
+                "dot1x_system_auth_control": "true"
+            }
+        },
+        "MAB_PORT_CONFIG_TABLE": {
+            "Ethernet0": {
+                "mab_enable": "true",
+                "mab_auth_type": "eap-md5"
+            }
+        },
         "VRF": {
                 "Vrf_blue": {
                     "vni" : "100"

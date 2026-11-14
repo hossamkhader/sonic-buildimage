@@ -201,7 +201,7 @@ static void authmgrGetTimer (authmgrLogicalPortInfo_t *logicalPortInfo,
 *********************************************************************/
 void authmgrTimerExpiryHdlr ( APP_TMR_CTRL_BLK_t timerCtrlBlk, void *ptrData)
 {
-  authmgrIssueCmd (authmgrTimeTick,  NULL,  NULLPTR);
+  authmgrIssueCmd (authmgrTimeTick,  0,  NULLPTR);
 }
 
 /*************************************************************************

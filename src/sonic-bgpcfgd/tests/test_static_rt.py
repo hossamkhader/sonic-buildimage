@@ -1312,3 +1312,107 @@ def test_set_bfd_true():
             "exit"
         ]
     )
+
+
+REDISTRIBUTION_CMDS = [
+    "route-map STATIC_ROUTE_FILTER permit 10",
+    " match tag 1",
+    "router bgp 65100",
+    " address-family ipv4",
+    "  redistribute static route-map STATIC_ROUTE_FILTER",
+    " exit-address-family",
+    " address-family ipv6",
+    "  redistribute static route-map STATIC_ROUTE_FILTER",
+    " exit-address-family",
+    "exit",
+]
+
+
+@pytest.fixture
+def clean_custom_tags():
+    StaticRouteMgr.custom_tag_seq.clear()
+    StaticRouteMgr.custom_tag_users.clear()
+    yield
+    StaticRouteMgr.custom_tag_seq.clear()
+    StaticRouteMgr.custom_tag_users.clear()
+
+
+def test_set_custom_tag(clean_custom_tags):
+    mgr = constructor()
+    set_del_test(
+        mgr,
+        "SET",
+        ("2001:db8:1::/48", {"blackhole": "true", "advertise": "true", "tag": "911"}),
+        True,
+        [
+            "route-map STATIC_ROUTE_FILTER permit 100",
+            " match tag 911",
+            "ipv6 route 2001:db8:1::/48 blackhole tag 911",
+        ] + REDISTRIBUTION_CMDS
+    )
+    assert mgr.static_routes["default"]["2001:db8:1::/48"][1] == "911"
+
+
+def test_custom_tag_shared_and_released(clean_custom_tags):
+    mgr = constructor()
+    mgr.set_handler("2001:db8:1::/48", {"blackhole": "true", "tag": "911"})
+    mgr.set_handler("2001:db8:2::/48", {"blackhole": "true", "tag": "911"})
+    assert StaticRouteMgr.custom_tag_seq == {"911": 100}
+
+    # The entry stays while another route still uses the tag.
+    set_del_test(mgr, "DEL", ("2001:db8:1::/48",), None,
+                 ["no ipv6 route 2001:db8:1::/48 blackhole tag 911"])
+    assert StaticRouteMgr.custom_tag_seq == {"911": 100}
+
+    # Changing the last user's tag back to the default retires the entry.
+    set_del_test(
+        mgr,
+        "SET",
+        ("2001:db8:2::/48", {"blackhole": "true"}),
+        True,
+        [
+            "no ipv6 route 2001:db8:2::/48 blackhole tag 911",
+            "ipv6 route 2001:db8:2::/48 blackhole tag 1",
+            "no route-map STATIC_ROUTE_FILTER permit 100",
+        ]
+    )
+    assert StaticRouteMgr.custom_tag_seq == {}
+
+
+def test_custom_tag_sequence_per_tag(clean_custom_tags):
+    mgr = constructor()
+    mgr.set_handler("2001:db8:1::/48", {"blackhole": "true", "tag": "911"})
+    mgr.set_handler("2001:db8:2::/48", {"blackhole": "true", "tag": "912"})
+    assert StaticRouteMgr.custom_tag_seq == {"911": 100, "912": 101}
+
+
+@pytest.mark.parametrize("tag", ["0", "1", "2", "4294967296", "abc", "-5"])
+def test_custom_tag_invalid_is_ignored(clean_custom_tags, tag):
+    mgr = constructor()
+    assert mgr.set_handler("2001:db8:1::/48", {"blackhole": "true", "tag": tag})
+    mgr.cfg_mgr.push_list.assert_not_called()
+    assert "2001:db8:1::/48" not in mgr.static_routes.get("default", {})
+
+
+def test_custom_tag_not_used_when_not_advertised(clean_custom_tags):
+    mgr = constructor()
+    set_del_test(
+        mgr,
+        "SET",
+        ("2001:db8:1::/48", {"blackhole": "true", "advertise": "false", "tag": "911"}),
+        True,
+        ["ipv6 route 2001:db8:1::/48 blackhole tag 2"] + REDISTRIBUTION_CMDS
+    )
+    assert StaticRouteMgr.custom_tag_seq == {}
+
+
+def test_redistribution_restores_custom_tags(clean_custom_tags):
+    mgr = constructor()
+    mgr.set_handler("vrfRED|2001:db8:1::/48", {"blackhole": "true", "tag": "911"})
+    cmds = mgr.enable_redistribution_command("default")
+    assert cmds[:4] == [
+        "route-map STATIC_ROUTE_FILTER permit 10",
+        " match tag 1",
+        "route-map STATIC_ROUTE_FILTER permit 100",
+        " match tag 911",
+    ]
